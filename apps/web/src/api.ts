@@ -57,6 +57,19 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return res.json() as Promise<T>;
 }
 
+// ─── Health / Warm-up ───────────────────────────────────────────────────────
+
+export async function wakeApi(): Promise<void> {
+  try {
+    await fetch(`${BASE_URL}/health`, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch {
+    // Ignore warm-up failures; the app will retry on actual requests.
+  }
+}
+
 // ─── Cars ─────────────────────────────────────────────────────────────────────
 
 export function listCars(params: ListCarsParams = {}): Promise<PaginatedCarsResponse> {

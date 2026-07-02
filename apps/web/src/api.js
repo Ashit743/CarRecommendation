@@ -11,6 +11,18 @@ async function request(path, init) {
     }
     return res.json();
 }
+// ─── Health / Warm-up ───────────────────────────────────────────────────────
+export async function wakeApi() {
+    try {
+        await fetch(`${BASE_URL}/health`, {
+            method: "GET",
+            headers: { "Content-Type": "application/json" },
+        });
+    }
+    catch {
+        // Ignore warm-up failures; the app will retry on actual requests.
+    }
+}
 // ─── Cars ─────────────────────────────────────────────────────────────────────
 export function listCars(params = {}) {
     const query = new URLSearchParams();

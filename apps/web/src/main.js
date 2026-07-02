@@ -1,10 +1,8 @@
 import { createPinia } from "pinia";
 import { createApp } from "vue";
-
 import App from "./App.vue";
 import { wakeApi } from "./api.js";
 import router from "./router.js";
 import "./style.css";
-
 createApp(App).use(createPinia()).use(router).mount("#app");
 wakeApi();
