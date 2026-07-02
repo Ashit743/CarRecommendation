@@ -5,7 +5,8 @@ import type { QuestionnaireInput, RecommendationItem, RecommendationResult } fro
 
 const llmSummarySchema = z.object({
   summary: z.string().min(1),
-  explanations: z.array(z.string().min(1)).min(1).max(5),
+  // Accept both an array and a single string (some models wrap it differently)
+  explanations: z.array(z.string().min(1)).min(1).max(10),
 });
 
 type BuildRecommendationNarrativeOptions = {
@@ -96,18 +97,25 @@ export async function buildRecommendationNarrative(
 
   try {
     const client = new GoogleGenerativeAI(options.apiKey);
-    const model = client.getGenerativeModel({
-      model: options.model,
-      generationConfig: { responseMimeType: "application/json" },
-    });
+    // NOTE: Do NOT set responseMimeType for gemini-2.5-flash — it uses a thinking
+    // model internally and ignores / mishandles the JSON MIME constraint.
+    const model = client.getGenerativeModel({ model: options.model });
     const response = await model.generateContent(buildPrompt(options.input, options.recommendations));
     let text = response.response.text().trim();
 
-    if (text.startsWith("```")) {
-      const match = text.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/);
+    // Strip markdown code fences if present
+    if (text.includes("```")) {
+      const match = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
       if (match && match[1]) {
         text = match[1].trim();
       }
+    }
+
+    // If the model added prose before the JSON object, extract just the JSON blob
+    const jsonStart = text.indexOf("{");
+    const jsonEnd = text.lastIndexOf("}");
+    if (jsonStart !== -1 && jsonEnd !== -1 && jsonStart < jsonEnd) {
+      text = text.substring(jsonStart, jsonEnd + 1);
     }
 
     const parsed = llmSummarySchema.parse(JSON.parse(text));
@@ -119,7 +127,12 @@ export async function buildRecommendationNarrative(
         explanation: parsed.explanations[index] ?? item.explanation,
       })),
     };
-  } catch {
+  } catch (error) {
+    // Log fully so we can see exactly why Gemini output failed parsing
+    console.error("[llmService] Gemini narrative generation failed — using template fallback.");
+    if (error instanceof Error) {
+      console.error("[llmService] Error:", error.message);
+    }
     return buildTemplateSummary(options.input, options.recommendations);
   }
 }
