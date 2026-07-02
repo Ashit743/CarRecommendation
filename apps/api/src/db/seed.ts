@@ -623,6 +623,17 @@ function buildReviews(car: SeedCar) {
 
 export async function seed(options?: { reset?: boolean }) {
   await db.transaction(async (tx) => {
+    const [{ carCount }] = await tx
+      .select({
+        carCount: sql<number>`count(*)::int`,
+      })
+      .from(cars);
+
+    if (carCount > 0 && !options?.reset) {
+      console.log("Database already contains car records; skipping seed.");
+      return;
+    }
+
     if (options?.reset) {
       await tx.delete(reviews);
       await tx.delete(carImages);
@@ -668,9 +679,9 @@ export async function seed(options?: { reset?: boolean }) {
     await tx.insert(carImages).values(imageRows);
     await tx.insert(reviews).values(reviewRows);
 
-    const [{ carCount }] = await tx
+    const [{ seededCarCount }] = await tx
       .select({
-        carCount: sql<number>`count(*)::int`,
+        seededCarCount: sql<number>`count(*)::int`,
       })
       .from(cars);
 
@@ -686,7 +697,7 @@ export async function seed(options?: { reset?: boolean }) {
       })
       .from(reviews);
 
-    console.log(`Seeded ${carCount} cars, ${imageCount} images, and ${reviewCount} reviews.`);
+    console.log(`Seeded ${seededCarCount} cars, ${imageCount} images, and ${reviewCount} reviews.`);
   });
 }
 

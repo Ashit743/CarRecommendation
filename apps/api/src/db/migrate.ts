@@ -1,14 +1,28 @@
-import { fileURLToPath } from "node:url";
-
+import { existsSync } from "node:fs";
+import { resolve } from "node:path";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 
 import { db, sql } from "./client.js";
 
-const migrationsFolder = fileURLToPath(new URL("../../drizzle", import.meta.url));
+function resolveMigrationsFolder() {
+  const candidates = [
+    resolve(process.cwd(), "apps/api/drizzle"),
+    resolve(process.cwd(), "drizzle"),
+    resolve(process.cwd(), "apps/api/dist/../drizzle"),
+  ];
+
+  const existing = candidates.find((candidate) => existsSync(candidate));
+
+  if (!existing) {
+    throw new Error(`Could not find drizzle migrations folder. Checked: ${candidates.join(", ")}`);
+  }
+
+  return existing;
+}
 
 async function runMigrations() {
   await migrate(db, {
-    migrationsFolder,
+    migrationsFolder: resolveMigrationsFolder(),
   });
 }
 
