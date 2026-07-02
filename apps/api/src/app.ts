@@ -59,6 +59,7 @@ export function buildApp() {
   app.register(drizzlePlugin);
 
   app.get("/health", async () => ({ status: "ok" }));
+  app.get("/api/health", async () => ({ status: "ok" }));
   app.register(carsRoutes, { prefix: "/api" });
   app.register(recommendRoutes, { prefix: "/api" });
   app.register(compareRoutes, { prefix: "/api" });
