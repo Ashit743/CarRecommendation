@@ -621,11 +621,13 @@ function buildReviews(car: SeedCar) {
   }));
 }
 
-async function seed() {
+export async function seed(options?: { reset?: boolean }) {
   await db.transaction(async (tx) => {
-    await tx.delete(reviews);
-    await tx.delete(carImages);
-    await tx.delete(cars);
+    if (options?.reset) {
+      await tx.delete(reviews);
+      await tx.delete(carImages);
+      await tx.delete(cars);
+    }
 
     const insertedCars = await tx
       .insert(cars)
@@ -688,13 +690,15 @@ async function seed() {
   });
 }
 
-seed()
-  .then(async () => {
-    await client.end();
-    process.exit(0);
-  })
-  .catch(async (error: unknown) => {
-    console.error("Failed to seed database", error);
-    await client.end({ timeout: 5 });
-    process.exit(1);
-  });
+if (process.argv[1]?.endsWith("seed.ts")) {
+  seed({ reset: false })
+    .then(async () => {
+      await client.end();
+      process.exit(0);
+    })
+    .catch(async (error: unknown) => {
+      console.error("Failed to seed database", error);
+      await client.end({ timeout: 5 });
+      process.exit(1);
+    });
+}
