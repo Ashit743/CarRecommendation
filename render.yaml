@@ -10,7 +10,7 @@ services:
     name: car-recommendation-api
     env: node
     plan: free
-    buildCommand: pnpm install && pnpm build
+    buildCommand: corepack pnpm install && corepack pnpm build
     startCommand: node apps/api/dist/index.js
     envVars:
       - key: DATABASE_URL
@@ -21,13 +21,18 @@ services:
         value: 3000
       - key: NODE_ENV
         value: production
-      - key: GEMINI_API_KEY
+      - key: GOOGLE_GENERATIVE_AI_API_KEY
         sync: false
+      - key: GEMINI_MODEL
+        value: gemini-2.5-flash
 
   # Vue Static Frontend
   - type: web
     name: car-recommendation-web
     env: static
     plan: free
-    buildCommand: pnpm install && pnpm build
+    buildCommand: corepack pnpm install && corepack pnpm build
     staticPublishPath: apps/web/dist
+    envVars:
+      - key: VITE_API_BASE_URL
+        value: https://car-recommendation-api.onrender.com/api

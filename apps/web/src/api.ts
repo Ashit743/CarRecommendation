@@ -5,7 +5,7 @@ import type {
   Review,
 } from "@car-app/shared";
 
-const BASE_URL = "/api";
+const BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? "/api").replace(/\/$/, "");
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
