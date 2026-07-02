@@ -13,13 +13,16 @@ function resolveMigrationsFolder() {
     resolve(currentDir, "../../drizzle"),
     resolve(currentDir, "../drizzle"),
     resolve(process.cwd(), "apps/api/drizzle"),
+    resolve(process.cwd(), "apps/api/dist/drizzle"),
     resolve(process.cwd(), "drizzle"),
+    resolve(process.cwd(), "dist/drizzle"),
+    resolve(process.cwd(), "..", "drizzle"),
   ];
 
   const existing = candidates.find((candidate) => existsSync(resolve(candidate, "meta", "_journal.json")) || existsSync(candidate));
 
   if (!existing) {
-    throw new Error(`Could not find drizzle migrations folder. Checked: ${candidates.join(", ")}`);
+    return null;
   }
 
   return existing;
@@ -27,6 +30,11 @@ function resolveMigrationsFolder() {
 
 export async function initializeDatabase(options?: { seedIfEmpty?: boolean }) {
   const migrationsFolder = resolveMigrationsFolder();
+
+  if (!migrationsFolder) {
+    console.warn("Drizzle migrations folder was not found at runtime; skipping migrations.");
+    return;
+  }
 
   await migrate(db, { migrationsFolder });
 

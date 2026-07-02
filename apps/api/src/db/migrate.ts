@@ -12,7 +12,10 @@ function resolveMigrationsFolder() {
     resolve(currentDir, "../../drizzle"),
     resolve(currentDir, "../drizzle"),
     resolve(process.cwd(), "apps/api/drizzle"),
+    resolve(process.cwd(), "apps/api/dist/drizzle"),
     resolve(process.cwd(), "drizzle"),
+    resolve(process.cwd(), "dist/drizzle"),
+    resolve(process.cwd(), "..", "drizzle"),
   ];
 
   const existing = candidates.find((candidate) => existsSync(resolve(candidate, "meta", "_journal.json")) || existsSync(candidate));
