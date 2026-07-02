@@ -11,7 +11,7 @@ services:
     env: node
     plan: free
     buildCommand: corepack pnpm install && corepack pnpm build
-    startCommand: node apps/api/dist/index.js
+    startCommand: corepack pnpm --filter @car-app/api db:migrate && corepack pnpm --filter @car-app/api db:seed && node apps/api/dist/index.js
     envVars:
       - key: DATABASE_URL
         fromDatabase:
