@@ -1,57 +1,62 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { computed } from "vue";
+import { RouterLink, RouterView, useRoute } from "vue-router";
 
-import { useRecommendationStore } from "./stores/useRecommendationStore.js";
+import { useCompareStore } from "./stores/useCompareStore.js";
 
-const store = useRecommendationStore();
-const rawBudget = ref("");
+const route = useRoute();
+const compareStore = useCompareStore();
 
-function handleBudgetInput(event: Event) {
-  const target = event.target;
+const navLinks = [
+  { to: "/", label: "Home", name: "home" },
+  { to: "/questionnaire", label: "Find My Car", name: "questionnaire" },
+  { to: "/browse", label: "Browse", name: "browse" },
+  { to: "/compare", label: "Compare", name: "compare" },
+] as const;
 
-  if (!(target instanceof HTMLInputElement)) {
-    return;
-  }
-
-  rawBudget.value = target.value;
-  const parsedBudget = Number(target.value);
-
-  if (!Number.isNaN(parsedBudget)) {
-    store.setBudget(parsedBudget);
-  }
-}
+const compareCount = computed(() => compareStore.count);
 </script>
 
 <template>
-  <main class="min-h-screen bg-stone-950 px-6 py-12 text-stone-100">
-    <div class="mx-auto max-w-4xl rounded-3xl border border-stone-800 bg-stone-900/80 p-8 shadow-2xl">
-      <p class="text-sm uppercase tracking-[0.35em] text-amber-400">
-        Indian car discovery
-      </p>
-      <h1 class="mt-4 text-4xl font-semibold tracking-tight">
-        Find the right car for your budget and priorities.
-      </h1>
-      <p class="mt-4 max-w-2xl text-base text-stone-300">
-        This starter app uses a typed workspace setup for recommendations, scoring, and API responses.
-      </p>
-
-      <label class="mt-8 block">
-        <span class="mb-2 block text-sm font-medium text-stone-200">Budget in lakh</span>
-        <input
-          :value="rawBudget"
-          class="w-full rounded-2xl border border-stone-700 bg-stone-950 px-4 py-3 text-stone-100 outline-none transition focus:border-amber-400"
-          inputmode="decimal"
-          placeholder="12.5"
-          @input="handleBudgetInput"
+  <div class="min-h-screen bg-stone-950 text-stone-100">
+    <!-- Nav -->
+    <nav class="fixed inset-x-0 top-0 z-50 border-b border-stone-800/60 bg-stone-950/90 backdrop-blur-md">
+      <div class="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+        <RouterLink
+          to="/"
+          class="flex items-center gap-2 text-lg font-bold tracking-tight text-amber-400 transition hover:text-amber-300"
         >
-      </label>
+          <span class="text-2xl">🚗</span>
+          CarIQ
+        </RouterLink>
 
-      <div class="mt-8 rounded-2xl border border-stone-800 bg-stone-950/70 p-5">
-        <p class="text-sm text-stone-400">
-          Current store snapshot
-        </p>
-        <pre class="mt-3 overflow-x-auto text-sm text-amber-200">{{ JSON.stringify(store.questionnaire, null, 2) }}</pre>
+        <div class="flex items-center gap-1">
+          <RouterLink
+            v-for="link in navLinks"
+            :key="link.name"
+            :to="link.to"
+            class="relative rounded-xl px-4 py-2 text-sm font-medium transition"
+            :class="[
+              route.name === link.name
+                ? 'bg-amber-400/10 text-amber-300'
+                : 'text-stone-400 hover:bg-stone-800/50 hover:text-stone-100',
+            ]"
+          >
+            {{ link.label }}
+            <span
+              v-if="link.name === 'compare' && compareCount > 0"
+              class="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-amber-400 text-[10px] font-bold text-stone-950"
+            >
+              {{ compareCount }}
+            </span>
+          </RouterLink>
+        </div>
       </div>
-    </div>
-  </main>
+    </nav>
+
+    <!-- Page content offset below fixed nav -->
+    <main class="pt-[73px]">
+      <RouterView />
+    </main>
+  </div>
 </template>

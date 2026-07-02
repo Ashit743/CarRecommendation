@@ -1,0 +1,33 @@
+databases:
+  - name: car-recommendation-db
+    databaseName: car_app
+    user: car_app
+    plan: free
+
+services:
+  # Fastify API Backend
+  - type: web
+    name: car-recommendation-api
+    env: node
+    plan: free
+    buildCommand: pnpm install && pnpm build
+    startCommand: node apps/api/dist/index.js
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: car-recommendation-db
+          property: connectionString
+      - key: PORT
+        value: 3000
+      - key: NODE_ENV
+        value: production
+      - key: GEMINI_API_KEY
+        sync: false
+
+  # Vue Static Frontend
+  - type: web
+    name: car-recommendation-web
+    env: static
+    plan: free
+    buildCommand: pnpm install && pnpm build
+    staticPublishPath: apps/web/dist

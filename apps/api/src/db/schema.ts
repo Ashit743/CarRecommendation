@@ -1,3 +1,4 @@
+import { relations } from "drizzle-orm";
 import {
   integer,
   jsonb,
@@ -61,3 +62,22 @@ export const reviews = pgTable("reviews", {
   cons: text("cons").array().notNull().default([]),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
+
+export const carsRelations = relations(cars, ({ many }) => ({
+  images: many(carImages),
+  reviews: many(reviews),
+}));
+
+export const carImagesRelations = relations(carImages, ({ one }) => ({
+  car: one(cars, {
+    fields: [carImages.carId],
+    references: [cars.id],
+  }),
+}));
+
+export const reviewsRelations = relations(reviews, ({ one }) => ({
+  car: one(cars, {
+    fields: [reviews.carId],
+    references: [cars.id],
+  }),
+}));
